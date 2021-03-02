@@ -1,7 +1,7 @@
 {
 	"name": "Continue Later",
 	"version": "0.1",
-	"description": "Add tabs to a list to continue browsing later",
+	"description": "Add pages to a list to continue browsing later",
 	"icons": {
 		"16": "res/icon_16.png",
 		"32": "res/icon_32.png",

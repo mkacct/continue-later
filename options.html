@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<link rel="stylesheet" href="css/options.css" />
+	<title>Continue Later options</title>
+	<script src="js/fontAwesome/all.js"></script>
+	<script src="js/options.js"></script>
+</head>
+<body>
+	<nav>
+		<div><h1><img src="res/icon_128.png" alt="App icon" class="appIcon" title="Continue Later" /><span class="wideOnly">Continue Later</span></h1></div>
+		<button class="selected" id="optionsTab" aria-label="Options" title="Options"><i class="fas fa-cog fa-fw"></i><span class="wideOnly">Options</span></button>
+		<button id="shortcutsTab" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><i class="fas fa-keyboard fa-fw"></i><span class="wideOnly">Keyboard shortcuts</span></button>
+		<button id="aboutTab" aria-label="About" title="About"><i class="fas fa-info-circle fa-fw"></i><span class="wideOnly">About</span></button>
+	</nav>
+	<main>
+		<div id="optionsContent">
+			<h2>Options</h2>
+			<p class="radioGroupLabel">List order</p>
+			<label><input type="radio" name="sort" value="desc" />Newest first</label>
+			<label><input type="radio" name="sort" value="asc" />Oldest first</label>
+			<p class="radioGroupLabel">Default set view</p>
+			<label><input type="radio" name="expandDefault" value="no" />Collapse</label>
+			<label><input type="radio" name="expandDefault" value="yes" />Expand</label>
+			<p class="radioGroupLabel">
+				Dismiss when opening<br />
+				<small>Remove items when you open them.</small>
+			</p>
+			<label><input type="radio" name="dismiss" value="yes" />Always</label>
+			<label><input type="radio" name="dismiss" value="setsOnly" />Sets only</label>
+			<label><input type="radio" name="dismiss" value="no" />Never</label>
+			<p class="radioGroupLabel">
+				Open sets in new window<br />
+				<small>Individual pages will always open in the current window.</small>
+			</p>
+			<label><input type="radio" name="openNewWindow" value="no" />Never</label>
+			<label><input type="radio" name="openNewWindow" value="ifWindow" />If set was added as window</label>
+			<label><input type="radio" name="openNewWindow" value="ifMultiple" />If set contains multiple pages</label>
+			<label style="margin-bottom: 1em;"><input type="radio" name="openNewWindow" value="yes" />Always</label>
+		</div>
+		<div id="aboutContent" style="display: none;">
+			<h2>About</h2>
+			<p>Continue Later version <span id="versionNumber"></span><br />
+			<a href="https://github.com/mkacct/continue-later/releases" target="_blank" rel="noopener">View release notes</a></p>
+			<p><a href="https://docs.google.com/forms/d/e/1FAIpQLSc97N-0J-oaeTReTl3-DMO7mG9t310KqzUV4DIhU0BeLF0p3Q/viewform?usp=pp_url&entry.1522486050=Continue+Later+for+Edge" target="_blank" rel="noopener">Send feedback</a></p>
+			<p><a href="https://github.com/mkacct/continue-later" target="_blank" rel="noopener">GitHub repo</a><br/>
+			<a href="https://github.com/mkacct/continue-later/issues" target="_blank" rel="noopener">GitHub issues</a></p>
+			<a href="https://mkps.app" target="_blank" rel="noopener"><img src="res/mk.png" alt="MK" style="height: 1.5em;" /></a>
+			<p style="margin-top: 0;">Created by Madeline Kahn</p>
+		</div>
+	</main>
+</body>
+</html>

@@ -1,0 +1,157 @@
+body {
+	margin: 0;
+	background-color: #171717;
+	color: white;
+	overflow: hidden;
+	font-size: 1em;
+}
+
+h1 {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+h1, h2, h3 {cursor: default;}
+
+nav, main {
+	position: fixed;
+	height: 100vh;
+	padding: 1em 3em;
+	box-sizing: border-box;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+button {
+	white-space: nowrap;
+	overflow: hidden;
+	border-style: none;
+	outline: none;
+	border-radius: 0;
+	background-color: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: inherit;
+	text-overflow: ellipsis;
+	padding: 0.5em 1em;
+}
+
+button:not([disabled]):hover {background-color: #373737;}
+button:not([disabled]):active {background-color: #272727;}
+button:not([disabled]).selected {background-color: #3f3f3f;}
+button:focus-visible {outline: 2px solid gray;}
+
+button[disabled] {
+	color: gray;
+	cursor: default;
+}
+
+button svg {margin-right: 1em;}
+#list button svg {margin-right: 0;}
+
+nav > button {
+	display: block;
+	width: 100%;
+}
+
+nav {
+	width: 360px;
+	border-right: 1px solid gray;
+}
+
+main {
+	left: 361px;
+	right: 0;
+}
+
+.radioGroupLabel {
+	font-weight: bold;
+	cursor: default;
+}
+
+.radioGroupLabel small {
+	font-weight: normal;
+	color: gray;
+	font-size: 0.75em;
+}
+
+label {
+	display: block;
+	margin: 0.5em 0 0.5em 1em;
+}
+
+input[type=radio] {
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+	box-sizing: border-box;
+	outline: none;
+	width: 1.5em;
+	height: 1.5em;
+	appearance: none;
+	border: 1px solid gray;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+input[type=text], input[type=number], textarea {
+	box-sizing: border-box;
+	margin-top: 0.5em;
+	resize: none;
+	background-color: inherit;
+	color: inherit;
+	border: 1px solid gray;
+	border-radius: 0;
+	font-family: inherit;
+	padding: 0.5em;
+}
+
+input[type=text]:focus, input[type=number]:focus, textarea:focus {
+	border-color: dodgerblue;
+	outline: none;
+}
+
+input[type=radio]:hover {border-color: #a0a0a0;}
+input[type=radio]:active {border-color: #606060;}
+input[type=radio]:checked {border-width: 0.375em;}
+input[type=radio]:focus-visible {outline: 2px solid gray;}
+
+a {
+	color: dodgerblue;
+	text-decoration: none;
+}
+
+a:hover {text-decoration: underline;}
+
+.appIcon {
+	margin-right: 0.5em;
+	height: 1em;
+	vertical-align: -0.25ex;
+}
+
+@media (prefers-color-scheme: light) {
+	body {
+		background-color: white;
+		color: black;
+	}
+	
+	button:not([disabled]):hover {background-color: #dfdfdf;}
+	button:not([disabled]):active {background-color: #efefef;}
+	button:not([disabled]).selected {background-color: #d7d7d7;}
+	
+	input[type=radio]:hover {border-color: #606060;}
+	input[type=radio]:active {border-color: #a0a0a0;}
+}
+
+@media (max-width: 720px) {
+	nav {
+		width: 90px;
+		padding: 1em;
+	}
+	
+	nav > * {text-align: center;}
+	.wideOnly {display: none;}
+	main {left: 91px;}
+	.appIcon, nav button svg {margin: 0;}
+}

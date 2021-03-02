@@ -1,0 +1,159 @@
+"use strict";
+
+var asides = [];
+var settings = {};
+
+let processing = true;
+let lastCommandTime = 0;
+
+function load() {
+	chrome.storage.local.get((res) => {
+		asides = res.asides ? res.asides : [];
+		settings = res.settings ? res.settings : {};
+		fillDefaultSettings(settings);
+		let badgeText;
+		if (asides.length == 0) {
+			badgeText = "";
+		} else if (asides.length > 9999) {
+			badgeText = "?!";
+		} else {
+			badgeText = asides.length.toString();
+		}
+		chrome.browserAction.setBadgeText({text: badgeText});
+		chrome.runtime.sendMessage("dataChanged");
+		processing = false;
+	});
+}
+
+load();
+chrome.storage.onChanged.addListener(load);
+
+chrome.commands.onCommand.addListener((command) => {
+	switch (command) {
+		case "10": // set selection
+			setTabs(false);
+			break;
+		case "20": // set window
+			setTabs(true);
+			break;
+		case "30": // restore oldest
+			restoreEntry(0);
+			break;
+		case "40": // restore newest
+			restoreEntry(asides.length - 1);
+			break;
+	}
+});
+
+function setTabs(isWindow) {
+	if (processing) {return;}
+	processing = true;
+	getIndicatedTabs(isWindow, (tabs) => {
+		if (tabs.length > 0) {
+			let entry = {
+				id: uuidv4(),
+				time: (new Date()).getTime(),
+				isWindow: isWindow,
+				tabs: []
+			};
+			tabs.forEach((item) => {
+				let tabEntry = {
+					url: item.url,
+					title: item.title,
+					favIconUrl: item.favIconUrl
+				};
+				entry.tabs.push(tabEntry);
+			});
+			let newAsides = asides.concat([entry]);
+			newAsides.sort((a, b) => {return a.time - b.time;});
+			chrome.storage.local.set({asides: newAsides});
+		} else {
+			processing = false;
+		}
+	});
+}
+
+function getIndicatedTabs(isWindow, callback) {
+	let opts = {currentWindow: true};
+	if (!isWindow) {opts.highlighted = true;}
+	chrome.tabs.query(opts, (res) => {
+		callback(res.filter((tab) => {return !/^(?:chrome|edge):\/\/newtab\/?$/.test(tab.url);}));
+	});
+}
+
+function getIndex(id) {
+	return asides.findIndex((item) => {return item.id == id;});
+}
+
+function restoreEntry(index, noDismiss, callback) {
+	if (processing) {return;}
+	if (!asides[index]) {return;}
+	processing = true;
+	if (settings.openNewWindow == "yes" || (settings.openNewWindow == "ifWindow" && asides[index].isWindow) || (settings.openNewWindow == "ifMultiple" && asides[index].tabs.length > 1)) {
+		chrome.windows.create({
+			focused: true,
+			url: asides[index].tabs.map((item) => {return item.url;})
+		});
+	} else {
+		asides[index].tabs.forEach((item, i) => {
+			chrome.tabs.create({
+				url: item.url,
+				active: i == 0
+			});
+		});
+	}
+	if (!noDismiss && settings.dismiss != "no") {
+		dismissEntry(index);
+	} else {
+		processing = false;
+	}
+}
+
+function dismissEntry(index) {
+	let newAsides = asides.slice();
+	newAsides.splice(index, 1);
+	chrome.storage.local.set({asides: newAsides});
+}
+
+function restoreTab(entryIndex, tabIndex, noDismiss) {
+	if (processing) {return;}
+	if (!(asides[entryIndex] && asides[entryIndex].tabs[tabIndex])) {return;}
+	processing = true;
+	chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
+	if (!noDismiss && settings.dismiss == "yes") {
+		dismissTab(entryIndex, tabIndex);
+	} else {
+		processing = false;
+	}
+}
+
+function dismissTab(entryIndex, tabIndex) {
+	let newAsides = asides.slice();
+	newAsides[entryIndex] = {
+		id: asides[entryIndex].id,
+		time: asides[entryIndex].time,
+		isWindow: asides[entryIndex].isWindow,
+		tabs: asides[entryIndex].tabs.slice()
+	};
+	newAsides[entryIndex].tabs.splice(tabIndex, 1);
+	if (newAsides[entryIndex].tabs.length == 0) {newAsides.splice(entryIndex, 1);}
+	chrome.storage.local.set({asides: newAsides});
+}
+
+function deleteAll() {
+	processing = true;
+	chrome.storage.local.set({asides: []});
+}
+
+function fillDefaultSettings(obj) {
+	if (!obj.sort) {obj.sort = "desc";}
+	if (!obj.expandDefault) {obj.expandDefault = "no";}
+	if (!obj.dismiss) {obj.dismiss = "yes";}
+	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
+}
+
+function uuidv4() {
+	return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+		(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+	);
+}

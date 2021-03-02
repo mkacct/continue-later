@@ -1,0 +1,31 @@
+{
+	"name": "Continue Later",
+	"version": "0.1",
+	"description": "Add tabs to a list to continue browsing later",
+	"icons": {
+		"16": "res/icon_16.png",
+		"32": "res/icon_32.png",
+		"48": "res/icon_48.png",
+		"128": "res/icon_128.png"
+	},
+	"browser_action": {
+		"default_icon": "res/icon_32.png",
+		"default_popup": "popup.html"
+	},
+	"options_page": "options.html",
+	"background": {
+		"scripts": ["js/background.js"],
+		"persistent": false
+	},
+	"commands": {
+		"10": {"description": "Add selected tab(s) to list"},
+		"20": {"description": "Add current window to list"},
+		"30": {"description": "Open & dismiss oldest entry"},
+		"40": {"description": "Open & dismiss newest entry"}
+	},
+	"permissions": [
+		"storage",
+		"tabs"
+	],
+	"manifest_version": 2
+}

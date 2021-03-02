@@ -85,14 +85,17 @@ function getIndex(id) {
 	return asides.findIndex((item) => {return item.id == id;});
 }
 
-function restoreEntry(index, noDismiss, callback) {
+function restoreEntry(index, noDismiss) {
 	if (processing) {return;}
 	if (!asides[index]) {return;}
 	processing = true;
 	if (settings.openNewWindow == "yes" || (settings.openNewWindow == "ifWindow" && asides[index].isWindow) || (settings.openNewWindow == "ifMultiple" && asides[index].tabs.length > 1)) {
-		chrome.windows.create({
-			focused: true,
-			url: asides[index].tabs.map((item) => {return item.url;})
+		chrome.windows.getCurrent((current) => {
+			chrome.windows.create({
+				focused: true,
+				incognito: current ? current.incognito : false,
+				url: asides[index].tabs.map((item) => {return item.url;})
+			});
 		});
 	} else {
 		asides[index].tabs.forEach((item, i) => {

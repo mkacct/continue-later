@@ -9,9 +9,13 @@ function setTab(tabName) {
 
 window.addEventListener("load", () => {
 	chrome.runtime.getBackgroundPage((bg) => {
-		let radioGroups = ["sort", "expandDefault", "dismiss", "openNewWindow"];
+		let radioGroups = ["sort", "dismiss", "openNewWindow"];
+		let checkboxes = ["expandDefault"];
 		radioGroups.forEach((item) => {
 			document.querySelector("input[name=" + item + "][value= " + bg.settings[item] + "]").checked = true;
+		});
+		checkboxes.forEach((item) => {
+			document.querySelector("input[name=" + item + "]").checked = bg.settings[item] == "yes";
 		});
 	});
 	document.querySelector("#optionsTab").addEventListener("click", () => {setTab("options");});
@@ -22,6 +26,15 @@ window.addEventListener("load", () => {
 			chrome.storage.local.get((res) => {
 				let newSettings = res.settings ? res.settings : {};
 				newSettings[e.target.name] = e.target.value;
+				chrome.storage.local.set({settings: newSettings});
+			});
+		});
+	});
+	document.querySelectorAll("input[type=checkbox]").forEach((item) => {
+		item.addEventListener("change", (e) => {
+			chrome.storage.local.get((res) => {
+				let newSettings = res.settings ? res.settings : {};
+				newSettings[e.target.name] = e.target.checked ? "yes" : "no";
 				chrome.storage.local.set({settings: newSettings});
 			});
 		});

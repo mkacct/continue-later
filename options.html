@@ -19,26 +19,30 @@
 		<div id="optionsContent">
 			<h2>Options</h2>
 			<p class="groupTitle">List order</p>
-			<label><input type="radio" name="sort" value="desc" />Newest first</label>
-			<label><input type="radio" name="sort" value="asc" />Oldest first</label>
-			<p class="groupTitle">Default set view</p>
-			<label><input type="radio" name="expandDefault" value="no" />Collapse</label>
-			<label><input type="radio" name="expandDefault" value="yes" />Expand</label>
+			<label class="optLine"><input type="radio" name="sort" value="desc" />Newest first</label>
+			<label class="optLine"><input type="radio" name="sort" value="asc" />Oldest first</label>
+			<label>
+				<p class="groupTitle">
+					Expand sets by default<br />
+					<small>The list of pages in each set will be shown by default.</small>
+				</p>
+				<div class="optLine"><input type="checkbox" name="expandDefault" /><span></span></div>
+			</label>
 			<p class="groupTitle">
 				Dismiss when opening<br />
 				<small>Remove items when you open them.</small>
 			</p>
-			<label><input type="radio" name="dismiss" value="yes" />Always</label>
-			<label><input type="radio" name="dismiss" value="setsOnly" />Sets only</label>
-			<label><input type="radio" name="dismiss" value="no" />Never</label>
+			<label class="optLine"><input type="radio" name="dismiss" value="yes" />Always</label>
+			<label class="optLine"><input type="radio" name="dismiss" value="setsOnly" />Sets only</label>
+			<label class="optLine"><input type="radio" name="dismiss" value="no" />Never</label>
 			<p class="groupTitle">
 				Open sets in new window<br />
 				<small>Individual pages will always open in the current window.</small>
 			</p>
-			<label><input type="radio" name="openNewWindow" value="no" />Never</label>
-			<label><input type="radio" name="openNewWindow" value="ifWindow" />If set was added as window</label>
-			<label><input type="radio" name="openNewWindow" value="ifMultiple" />If set contains multiple pages</label>
-			<label style="margin-bottom: 1em;"><input type="radio" name="openNewWindow" value="yes" />Always</label>
+			<label class="optLine"><input type="radio" name="openNewWindow" value="no" />Never</label>
+			<label class="optLine"><input type="radio" name="openNewWindow" value="ifWindow" />If set was added as window</label>
+			<label class="optLine"><input type="radio" name="openNewWindow" value="ifMultiple" />If set contains multiple pages</label>
+			<label class="optLine" style="margin-bottom: 1em;"><input type="radio" name="openNewWindow" value="yes" />Always</label>
 		</div>
 		<div id="aboutContent" style="display: none;">
 			<h2>About</h2>

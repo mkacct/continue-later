@@ -154,13 +154,15 @@ function openMenu(self, item, j) {
 				let openButton = document.createElement("button");
 				openButton.innerHTML = "<i class=\"fas fa-external-link-alt fa-lg fa-fw\"></i>Open without dismissing";
 				openButton.addEventListener("click", () => {
-					if (isPage) {
-						bg.restoreTab(bg.getIndex(item.id), j, true);
-						window.close();
-					} else {
-						bg.restoreEntry(bg.getIndex(item.id), true);
-						window.close();
-					}
+					chrome.runtime.getBackgroundPage((bg) => {
+						if (isPage) {
+							bg.restoreTab(bg.getIndex(item.id), j, true);
+							window.close();
+						} else {
+							bg.restoreEntry(bg.getIndex(item.id), true);
+							window.close();
+						}
+					});
 				});
 				menu.appendChild(openButton);
 			}
@@ -179,11 +181,13 @@ function openMenu(self, item, j) {
 			let dismissButton = document.createElement("button");
 			dismissButton.innerHTML = "<i class=\"fas fa-times fa-lg fa-fw\"></i>Dismiss";
 			dismissButton.addEventListener("click", () => {
-				if (isPage) {
-					bg.dismissTab(bg.getIndex(item.id), j);
-				} else {
-					bg.dismissEntry(bg.getIndex(item.id));
-				}
+				chrome.runtime.getBackgroundPage((bg) => {
+					if (isPage) {
+						bg.dismissTab(bg.getIndex(item.id), j);
+					} else {
+						bg.dismissEntry(bg.getIndex(item.id));
+					}
+				});
 			});
 			menu.appendChild(dismissButton);
 		}

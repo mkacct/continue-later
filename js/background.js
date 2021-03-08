@@ -104,18 +104,20 @@ function setTabs(isWindow, justThisOne) {
 }
 
 function setLink(url) {
-	let newAsides = asides.concat([{
-		id: uuidv4(),
-		time: (new Date()).getTime(),
-		tabs: [{url: url}]
-	}]);
-	newAsides.sort((a, b) => {return a.time - b.time;});
-	chrome.storage.local.set({asides: newAsides});
+	if (!isNewTab(url)) {
+		let newAsides = asides.concat([{
+			id: uuidv4(),
+			time: (new Date()).getTime(),
+			tabs: [{url: url}]
+		}]);
+		newAsides.sort((a, b) => {return a.time - b.time;});
+		chrome.storage.local.set({asides: newAsides});
+	}
 }
 
 function getIndicatedTabs(opts, callback) {
 	chrome.tabs.query(opts, (res) => {
-		callback(res.filter((tab) => {return !/^(?:chrome|edge):\/\/newtab\/?$/.test(tab.url);}));
+		callback(res.filter((tab) => {return !isNewTab(tab.url);}));
 	});
 }
 
@@ -146,7 +148,7 @@ function restoreEntry(index, noDismiss) {
 					active: i == 0
 				});
 			});
-			if (settings.closeNewTab == "yes" && /^(?:chrome|edge):\/\/newtab\/?$/.test(currentTab[0].url)) {
+			if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
 				chrome.tabs.remove(currentTab[0].id);
 			}
 		});
@@ -173,7 +175,7 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 		active: true
 	}, (currentTab) => {
 		chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
-		if (settings.closeNewTab == "yes" && /^(?:chrome|edge):\/\/newtab\/?$/.test(currentTab[0].url)) {
+		if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
 			chrome.tabs.remove(currentTab[0].id);
 		}
 	});
@@ -208,6 +210,10 @@ function fillDefaultSettings(obj) {
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
+}
+
+function isNewTab(s) {
+	return /^(?:chrome|edge):\/\/newtab\/?$/.test(s);
 }
 
 function uuidv4() {

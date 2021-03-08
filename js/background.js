@@ -98,11 +98,19 @@ function restoreEntry(index, noDismiss) {
 			});
 		});
 	} else {
-		asides[index].tabs.forEach((item, i) => {
-			chrome.tabs.create({
-				url: item.url,
-				active: i == 0
+		chrome.tabs.query({
+			currentWindow: true,
+			active: true
+		}, (currentTab) => {
+			asides[index].tabs.forEach((item, i) => {
+				chrome.tabs.create({
+					url: item.url,
+					active: i == 0
+				});
 			});
+			if (settings.closeNewTab == "yes" && /^(?:chrome|edge):\/\/newtab\/?$/.test(currentTab[0].url)) {
+				chrome.tabs.remove(currentTab[0].id);
+			}
 		});
 	}
 	if (!noDismiss && settings.dismiss != "no") {
@@ -122,7 +130,15 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 	if (processing) {return;}
 	if (!(asides[entryIndex] && asides[entryIndex].tabs[tabIndex])) {return;}
 	processing = true;
-	chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
+	chrome.tabs.query({
+		currentWindow: true,
+		active: true
+	}, (currentTab) => {
+		chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
+		if (settings.closeNewTab == "yes" && /^(?:chrome|edge):\/\/newtab\/?$/.test(currentTab[0].url)) {
+			chrome.tabs.remove(currentTab[0].id);
+		}
+	});
 	if (!noDismiss && settings.dismiss == "yes") {
 		dismissTab(entryIndex, tabIndex);
 	} else {
@@ -153,6 +169,7 @@ function fillDefaultSettings(obj) {
 	if (!obj.expandDefault) {obj.expandDefault = "no";}
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
+	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
 }
 
 function uuidv4() {

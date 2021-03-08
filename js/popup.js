@@ -24,7 +24,7 @@ function load() {
 			entryTitle.className = "entryTitle";
 			entryTitle.innerText = item.tabs.length + " page" + ((item.tabs.length == 1) ? "" : "s");
 			top.appendChild(entryTitle);
-			if (item.isWindow) {
+			if ((bg.settings.openNewWindow == "ifWindow") && item.isWindow) {
 				let windowIcon = document.createElement("i");
 				windowIcon.innerHTML = "<i class=\"far fa-window-maximize\"></i>";
 				top.appendChild(windowIcon);

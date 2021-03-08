@@ -66,12 +66,12 @@ main {
 	right: 0;
 }
 
-.radioGroupLabel {
+.groupTitle {
 	font-weight: bold;
 	cursor: default;
 }
 
-.radioGroupLabel small {
+.groupTitle small {
 	font-weight: normal;
 	color: gray;
 	font-size: 0.75em;

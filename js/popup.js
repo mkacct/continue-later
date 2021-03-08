@@ -101,9 +101,12 @@ function load() {
 
 function updateAddButtons() {
 	chrome.runtime.getBackgroundPage((bg) => {
-		bg.getIndicatedTabs(false, (selected) => {
+		bg.getIndicatedTabs({
+			currentWindow: true,
+			highlighted: true
+		}, (selected) => {
 			chrome.runtime.getBackgroundPage((bg) => {
-				bg.getIndicatedTabs(true, (inWindow) => {
+				bg.getIndicatedTabs({currentWindow: true}, (inWindow) => {
 					document.querySelector("#addTabButton").disabled = selected.length == 0;
 					document.querySelector("#addWindowButton").disabled = inWindow.length == 0;
 					document.querySelector("#addTabText").innerText = (selected.length > 1) ? "Add selected pages to list" : "Add page to list";

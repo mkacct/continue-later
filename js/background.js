@@ -45,10 +45,40 @@ chrome.commands.onCommand.addListener((command) => {
 	}
 });
 
-function setTabs(isWindow) {
+chrome.runtime.onInstalled.addListener(() => {
+	chrome.contextMenus.create({
+		id: "setPage",
+		title: "Add page to Continue Later",
+		contexts: ["page"]
+	});
+	chrome.contextMenus.create({
+		id: "setLink",
+		title: "Add to Continue Later",
+		contexts: ["link"]
+	});
+});
+
+chrome.contextMenus.onClicked.addListener((data) => {
+	switch (data.menuItemId) {
+		case "setPage":
+			setTabs(false, true);
+			break;
+		case "setLink":
+			setLink(data.linkUrl);
+			break;
+	}
+});
+
+function setTabs(isWindow, justThisOne) {
 	if (processing) {return;}
 	processing = true;
-	getIndicatedTabs(isWindow, (tabs) => {
+	let opts = {currentWindow: true};
+	if (justThisOne) {
+		opts.active = true;
+	} else if (!isWindow) {
+		opts.highlighted = true;
+	}
+	getIndicatedTabs(opts, (tabs) => {
 		if (tabs.length > 0) {
 			let entry = {
 				id: uuidv4(),
@@ -73,9 +103,17 @@ function setTabs(isWindow) {
 	});
 }
 
-function getIndicatedTabs(isWindow, callback) {
-	let opts = {currentWindow: true};
-	if (!isWindow) {opts.highlighted = true;}
+function setLink(url) {
+	let newAsides = asides.concat([{
+		id: uuidv4(),
+		time: (new Date()).getTime(),
+		tabs: [{url: url}]
+	}]);
+	newAsides.sort((a, b) => {return a.time - b.time;});
+	chrome.storage.local.set({asides: newAsides});
+}
+
+function getIndicatedTabs(opts, callback) {
 	chrome.tabs.query(opts, (res) => {
 		callback(res.filter((tab) => {return !/^(?:chrome|edge):\/\/newtab\/?$/.test(tab.url);}));
 	});

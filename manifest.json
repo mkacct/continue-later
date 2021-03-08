@@ -25,7 +25,8 @@
 	},
 	"permissions": [
 		"storage",
-		"tabs"
+		"tabs",
+		"contextMenus"
 	],
 	"manifest_version": 2
 }

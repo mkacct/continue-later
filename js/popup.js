@@ -180,6 +180,19 @@ function openMenu(self, item, j) {
 					});
 				});
 				menu.appendChild(shareButton);
+			} else {
+				let addButton = document.createElement("button");
+				bg.getIndicatedTabs({
+					currentWindow: true,
+					highlighted: true
+				}, (selected) => {
+					addButton.innerHTML = "<i class=\"fas fa-plus fa-lg fa-fw\"></i>" + ((selected.length > 1) ? "Add selected pages to set" : "Add page to set");
+					addButton.disabled = selected.length == 0;
+				});
+				addButton.addEventListener("click", () => {
+					chrome.runtime.getBackgroundPage((bg) => {bg.setTabs(false, false, item.id);});
+				});
+				menu.appendChild(addButton);
 			}
 			let dismissButton = document.createElement("button");
 			dismissButton.innerHTML = "<i class=\"fas fa-times fa-lg fa-fw\"></i>Dismiss";

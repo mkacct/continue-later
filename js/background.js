@@ -69,7 +69,7 @@ chrome.contextMenus.onClicked.addListener((data) => {
 	}
 });
 
-function setTabs(isWindow, justThisOne) {
+function setTabs(isWindow, justThisOne, setId) {
 	if (processing) {return;}
 	processing = true;
 	let opts = {currentWindow: true};
@@ -80,12 +80,24 @@ function setTabs(isWindow, justThisOne) {
 	}
 	getIndicatedTabs(opts, (tabs) => {
 		if (tabs.length > 0) {
-			let entry = {
-				id: uuidv4(),
-				time: (new Date()).getTime(),
-				isWindow: isWindow,
-				tabs: []
-			};
+			let entry;
+			let existingIndex;
+			if (setId) {
+				existingIndex = asides.findIndex((item) => {return item.id == setId});
+				entry = {
+					id: asides[existingIndex].id,
+					time: asides[existingIndex].time,
+					isWindow: asides[existingIndex].isWindow,
+					tabs: asides[existingIndex].tabs.slice()
+				};
+			} else {
+				entry = {
+					id: uuidv4(),
+					time: (new Date()).getTime(),
+					isWindow: isWindow,
+					tabs: []
+				};
+			}
 			tabs.forEach((item) => {
 				let tabEntry = {
 					url: item.url,
@@ -94,8 +106,14 @@ function setTabs(isWindow, justThisOne) {
 				};
 				entry.tabs.push(tabEntry);
 			});
-			let newAsides = asides.concat([entry]);
-			newAsides.sort((a, b) => {return a.time - b.time;});
+			let newAsides;
+			if (setId) {
+				newAsides = asides.slice();
+				newAsides.splice(existingIndex, 1, entry);
+			} else {
+				newAsides = asides.concat([entry]);
+				newAsides.sort((a, b) => {return a.time - b.time;});
+			}
 			chrome.storage.local.set({asides: newAsides});
 		} else {
 			processing = false;

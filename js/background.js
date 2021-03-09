@@ -5,6 +5,7 @@ var settings = {};
 
 let processing = true;
 let lastCommandTime = 0;
+let setCommandUsed = "";
 
 function load() {
 	chrome.storage.local.get((res) => {
@@ -29,6 +30,10 @@ load();
 chrome.storage.onChanged.addListener(load);
 
 chrome.commands.onCommand.addListener((command) => {
+	if (settings.suppressRepeatCommands == "yes") {
+		if (command == setCommandUsed) {return;}
+		if (command == "10" || command == "20") {setCommandUsed = command;}
+	}
 	switch (command) {
 		case "10": // set selection
 			setTabs(false);
@@ -44,6 +49,10 @@ chrome.commands.onCommand.addListener((command) => {
 			break;
 	}
 });
+
+chrome.tabs.onActivated.addListener(() => {setCommandUsed = "";});
+chrome.tabs.onHighlighted.addListener(() => {setCommandUsed = "";});
+chrome.tabs.onUpdated.addListener(() => {setCommandUsed = "";});
 
 chrome.runtime.onInstalled.addListener(() => {
 	chrome.contextMenus.create({
@@ -228,6 +237,7 @@ function fillDefaultSettings(obj) {
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
+	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
 }
 
 function isNewTab(s) {

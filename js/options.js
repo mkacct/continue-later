@@ -10,7 +10,7 @@ function setTab(tabName) {
 window.addEventListener("load", () => {
 	chrome.runtime.getBackgroundPage((bg) => {
 		let radioGroups = ["sort", "dismiss", "openNewWindow"];
-		let checkboxes = ["expandDefault", "closeNewTab"];
+		let checkboxes = ["expandDefault", "closeNewTab", "suppressRepeatCommands"];
 		radioGroups.forEach((item) => {
 			document.querySelector("input[name=" + item + "][value= " + bg.settings[item] + "]").checked = true;
 		});

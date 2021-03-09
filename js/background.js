@@ -5,6 +5,7 @@ var settings = {};
 
 let processing = true;
 let lastCommandTime = 0;
+let setCommandUsed = "";
 
 function load() {
 	chrome.storage.local.get((res) => {
@@ -29,6 +30,10 @@ load();
 chrome.storage.onChanged.addListener(load);
 
 chrome.commands.onCommand.addListener((command) => {
+	if (settings.suppressRepeatCommands == "yes") {
+		if (command == setCommandUsed) {return;}
+		if (command == "10" || command == "20") {setCommandUsed = command;}
+	}
 	switch (command) {
 		case "10": // set selection
 			setTabs(false);
@@ -45,17 +50,63 @@ chrome.commands.onCommand.addListener((command) => {
 	}
 });
 
-function setTabs(isWindow) {
+chrome.tabs.onActivated.addListener(() => {setCommandUsed = "";});
+chrome.tabs.onHighlighted.addListener(() => {setCommandUsed = "";});
+chrome.tabs.onUpdated.addListener(() => {setCommandUsed = "";});
+
+chrome.runtime.onInstalled.addListener(() => {
+	chrome.contextMenus.create({
+		id: "setPage",
+		title: "Add page to Continue Later",
+		contexts: ["page"]
+	});
+	chrome.contextMenus.create({
+		id: "setLink",
+		title: "Add to Continue Later",
+		contexts: ["link"]
+	});
+});
+
+chrome.contextMenus.onClicked.addListener((data) => {
+	switch (data.menuItemId) {
+		case "setPage":
+			setTabs(false, true);
+			break;
+		case "setLink":
+			setLink(data.linkUrl);
+			break;
+	}
+});
+
+function setTabs(isWindow, justThisOne, setId) {
 	if (processing) {return;}
 	processing = true;
-	getIndicatedTabs(isWindow, (tabs) => {
+	let opts = {currentWindow: true};
+	if (justThisOne) {
+		opts.active = true;
+	} else if (!isWindow) {
+		opts.highlighted = true;
+	}
+	getIndicatedTabs(opts, (tabs) => {
 		if (tabs.length > 0) {
-			let entry = {
-				id: uuidv4(),
-				time: (new Date()).getTime(),
-				isWindow: isWindow,
-				tabs: []
-			};
+			let entry;
+			let existingIndex;
+			if (setId) {
+				existingIndex = asides.findIndex((item) => {return item.id == setId});
+				entry = {
+					id: asides[existingIndex].id,
+					time: asides[existingIndex].time,
+					isWindow: asides[existingIndex].isWindow,
+					tabs: asides[existingIndex].tabs.slice()
+				};
+			} else {
+				entry = {
+					id: uuidv4(),
+					time: (new Date()).getTime(),
+					isWindow: isWindow,
+					tabs: []
+				};
+			}
 			tabs.forEach((item) => {
 				let tabEntry = {
 					url: item.url,
@@ -64,8 +115,14 @@ function setTabs(isWindow) {
 				};
 				entry.tabs.push(tabEntry);
 			});
-			let newAsides = asides.concat([entry]);
-			newAsides.sort((a, b) => {return a.time - b.time;});
+			let newAsides;
+			if (setId) {
+				newAsides = asides.slice();
+				newAsides.splice(existingIndex, 1, entry);
+			} else {
+				newAsides = asides.concat([entry]);
+				newAsides.sort((a, b) => {return a.time - b.time;});
+			}
 			chrome.storage.local.set({asides: newAsides});
 		} else {
 			processing = false;
@@ -73,11 +130,21 @@ function setTabs(isWindow) {
 	});
 }
 
-function getIndicatedTabs(isWindow, callback) {
-	let opts = {currentWindow: true};
-	if (!isWindow) {opts.highlighted = true;}
+function setLink(url) {
+	if (!isNewTab(url)) {
+		let newAsides = asides.concat([{
+			id: uuidv4(),
+			time: (new Date()).getTime(),
+			tabs: [{url: url}]
+		}]);
+		newAsides.sort((a, b) => {return a.time - b.time;});
+		chrome.storage.local.set({asides: newAsides});
+	}
+}
+
+function getIndicatedTabs(opts, callback) {
 	chrome.tabs.query(opts, (res) => {
-		callback(res.filter((tab) => {return !/^(?:chrome|edge):\/\/newtab\/?$/.test(tab.url);}));
+		callback(res.filter((tab) => {return !isNewTab(tab.url);}));
 	});
 }
 
@@ -98,11 +165,19 @@ function restoreEntry(index, noDismiss) {
 			});
 		});
 	} else {
-		asides[index].tabs.forEach((item, i) => {
-			chrome.tabs.create({
-				url: item.url,
-				active: i == 0
+		chrome.tabs.query({
+			currentWindow: true,
+			active: true
+		}, (currentTab) => {
+			asides[index].tabs.forEach((item, i) => {
+				chrome.tabs.create({
+					url: item.url,
+					active: i == 0
+				});
 			});
+			if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
+				chrome.tabs.remove(currentTab[0].id);
+			}
 		});
 	}
 	if (!noDismiss && settings.dismiss != "no") {
@@ -122,7 +197,15 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 	if (processing) {return;}
 	if (!(asides[entryIndex] && asides[entryIndex].tabs[tabIndex])) {return;}
 	processing = true;
-	chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
+	chrome.tabs.query({
+		currentWindow: true,
+		active: true
+	}, (currentTab) => {
+		chrome.tabs.create({url: asides[entryIndex].tabs[tabIndex].url});
+		if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
+			chrome.tabs.remove(currentTab[0].id);
+		}
+	});
 	if (!noDismiss && settings.dismiss == "yes") {
 		dismissTab(entryIndex, tabIndex);
 	} else {
@@ -153,6 +236,12 @@ function fillDefaultSettings(obj) {
 	if (!obj.expandDefault) {obj.expandDefault = "no";}
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
+	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
+	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
+}
+
+function isNewTab(s) {
+	return /^(?:chrome|edge):\/\/newtab\/?$/.test(s);
 }
 
 function uuidv4() {

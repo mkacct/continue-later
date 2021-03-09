@@ -24,7 +24,7 @@ function load() {
 			entryTitle.className = "entryTitle";
 			entryTitle.innerText = item.tabs.length + " page" + ((item.tabs.length == 1) ? "" : "s");
 			top.appendChild(entryTitle);
-			if (item.isWindow) {
+			if ((bg.settings.openNewWindow == "ifWindow") && item.isWindow) {
 				let windowIcon = document.createElement("i");
 				windowIcon.innerHTML = "<i class=\"far fa-window-maximize\"></i>";
 				top.appendChild(windowIcon);
@@ -101,9 +101,12 @@ function load() {
 
 function updateAddButtons() {
 	chrome.runtime.getBackgroundPage((bg) => {
-		bg.getIndicatedTabs(false, (selected) => {
+		bg.getIndicatedTabs({
+			currentWindow: true,
+			highlighted: true
+		}, (selected) => {
 			chrome.runtime.getBackgroundPage((bg) => {
-				bg.getIndicatedTabs(true, (inWindow) => {
+				bg.getIndicatedTabs({currentWindow: true}, (inWindow) => {
 					document.querySelector("#addTabButton").disabled = selected.length == 0;
 					document.querySelector("#addWindowButton").disabled = inWindow.length == 0;
 					document.querySelector("#addTabText").innerText = (selected.length > 1) ? "Add selected pages to list" : "Add page to list";
@@ -154,13 +157,15 @@ function openMenu(self, item, j) {
 				let openButton = document.createElement("button");
 				openButton.innerHTML = "<i class=\"fas fa-external-link-alt fa-lg fa-fw\"></i>Open without dismissing";
 				openButton.addEventListener("click", () => {
-					if (isPage) {
-						bg.restoreTab(bg.getIndex(item.id), j, true);
-						window.close();
-					} else {
-						bg.restoreEntry(bg.getIndex(item.id), true);
-						window.close();
-					}
+					chrome.runtime.getBackgroundPage((bg) => {
+						if (isPage) {
+							bg.restoreTab(bg.getIndex(item.id), j, true);
+							window.close();
+						} else {
+							bg.restoreEntry(bg.getIndex(item.id), true);
+							window.close();
+						}
+					});
 				});
 				menu.appendChild(openButton);
 			}
@@ -175,15 +180,30 @@ function openMenu(self, item, j) {
 					});
 				});
 				menu.appendChild(shareButton);
+			} else {
+				let addButton = document.createElement("button");
+				bg.getIndicatedTabs({
+					currentWindow: true,
+					highlighted: true
+				}, (selected) => {
+					addButton.innerHTML = "<i class=\"fas fa-plus fa-lg fa-fw\"></i>" + ((selected.length > 1) ? "Add selected pages to set" : "Add page to set");
+					addButton.disabled = selected.length == 0;
+				});
+				addButton.addEventListener("click", () => {
+					chrome.runtime.getBackgroundPage((bg) => {bg.setTabs(false, false, item.id);});
+				});
+				menu.appendChild(addButton);
 			}
 			let dismissButton = document.createElement("button");
 			dismissButton.innerHTML = "<i class=\"fas fa-times fa-lg fa-fw\"></i>Dismiss";
 			dismissButton.addEventListener("click", () => {
-				if (isPage) {
-					bg.dismissTab(bg.getIndex(item.id), j);
-				} else {
-					bg.dismissEntry(bg.getIndex(item.id));
-				}
+				chrome.runtime.getBackgroundPage((bg) => {
+					if (isPage) {
+						bg.dismissTab(bg.getIndex(item.id), j);
+					} else {
+						bg.dismissEntry(bg.getIndex(item.id));
+					}
+				});
 			});
 			menu.appendChild(dismissButton);
 		}

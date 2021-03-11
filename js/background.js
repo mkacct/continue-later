@@ -150,6 +150,20 @@ function getIndex(id) {
 	return asides.findIndex((item) => {return item.id == id;});
 }
 
+class TabGrouper { // seriously? a class?
+	constructor(total) {
+		this.total = total;
+		this.tabIds = [];
+	}
+	
+	addId(id) {
+		this.tabIds.push(id);
+		if (this.tabIds.length == this.total) {
+			chrome.tabs.group({tabIds: this.tabIds});
+		}
+	}
+}
+
 function restoreEntry(index, noDismiss) {
 	if (processing) {return;}
 	if (!asides[index]) {return;}
@@ -158,10 +172,16 @@ function restoreEntry(index, noDismiss) {
 		currentWindow: true,
 		active: true
 	}, (currentTab) => {
+		let grouper;
+		if (settings.groupRestoredTabs == "yes" && asides[index].tabs.length > 1) {
+			grouper = new TabGrouper(asides[index].tabs.length);
+		}
 		asides[index].tabs.forEach((item, i) => {
 			chrome.tabs.create({
 				url: item.url,
 				active: i == 0
+			}, (tab) => {
+				if (grouper) {grouper.addId(tab.id);}
 			});
 		});
 		if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
@@ -224,6 +244,7 @@ function fillDefaultSettings(obj) {
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
 	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
+	if (!obj.groupRestoredTabs) {obj.groupRestoredTabs = "no";}
 }
 
 function isNewTab(s) {

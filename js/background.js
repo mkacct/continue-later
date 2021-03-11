@@ -36,10 +36,10 @@ chrome.commands.onCommand.addListener((command) => {
 	}
 	switch (command) {
 		case "10": // set selection
-			setTabs(false);
+			setTabs("selection");
 			break;
 		case "20": // set window
-			setTabs(true);
+			setTabs("window");
 			break;
 		case "30": // restore oldest
 			restoreEntry(0);
@@ -70,7 +70,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((data) => {
 	switch (data.menuItemId) {
 		case "setPage":
-			setTabs(false, true);
+			setTabs("current");
 			break;
 		case "setLink":
 			setLink(data.linkUrl);
@@ -78,13 +78,14 @@ chrome.contextMenus.onClicked.addListener((data) => {
 	}
 });
 
-function setTabs(isWindow, justThisOne, setId) {
+// mode "current", "selection", "window"
+function setTabs(mode, setId) {
 	if (processing) {return;}
 	processing = true;
 	let opts = {currentWindow: true};
-	if (justThisOne) {
+	if (mode == "current") {
 		opts.active = true;
-	} else if (!isWindow) {
+	} else if (mode == "selection") {
 		opts.highlighted = true;
 	}
 	getIndicatedTabs(opts, (tabs) => {

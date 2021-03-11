@@ -36,10 +36,10 @@ chrome.commands.onCommand.addListener((command) => {
 	}
 	switch (command) {
 		case "10": // set selection
-			setTabs(false);
+			setTabs("selection");
 			break;
 		case "20": // set window
-			setTabs(true);
+			setTabs("window");
 			break;
 		case "30": // restore oldest
 			restoreEntry(0);
@@ -70,7 +70,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((data) => {
 	switch (data.menuItemId) {
 		case "setPage":
-			setTabs(false, true);
+			setTabs("current");
 			break;
 		case "setLink":
 			setLink(data.linkUrl);
@@ -78,13 +78,14 @@ chrome.contextMenus.onClicked.addListener((data) => {
 	}
 });
 
-function setTabs(isWindow, justThisOne, setId) {
+// mode "current", "selection", "window"
+function setTabs(mode, setId) {
 	if (processing) {return;}
 	processing = true;
 	let opts = {currentWindow: true};
-	if (justThisOne) {
+	if (mode == "current") {
 		opts.active = true;
-	} else if (!isWindow) {
+	} else if (mode == "selection") {
 		opts.highlighted = true;
 	}
 	getIndicatedTabs(opts, (tabs) => {
@@ -96,14 +97,12 @@ function setTabs(isWindow, justThisOne, setId) {
 				entry = {
 					id: asides[existingIndex].id,
 					time: asides[existingIndex].time,
-					isWindow: asides[existingIndex].isWindow,
 					tabs: asides[existingIndex].tabs.slice()
 				};
 			} else {
 				entry = {
 					id: uuidv4(),
 					time: (new Date()).getTime(),
-					isWindow: isWindow,
 					tabs: []
 				};
 			}
@@ -132,6 +131,8 @@ function setTabs(isWindow, justThisOne, setId) {
 
 function setLink(url) {
 	if (!isNewTab(url)) {
+		if (processing) {return;}
+		processing = true;
 		let newAsides = asides.concat([{
 			id: uuidv4(),
 			time: (new Date()).getTime(),
@@ -156,30 +157,20 @@ function restoreEntry(index, noDismiss) {
 	if (processing) {return;}
 	if (!asides[index]) {return;}
 	processing = true;
-	if (settings.openNewWindow == "yes" || (settings.openNewWindow == "ifWindow" && asides[index].isWindow) || (settings.openNewWindow == "ifMultiple" && asides[index].tabs.length > 1)) {
-		chrome.windows.getCurrent((current) => {
-			chrome.windows.create({
-				focused: true,
-				incognito: current ? current.incognito : false,
-				url: asides[index].tabs.map((item) => {return item.url;})
+	chrome.tabs.query({
+		currentWindow: true,
+		active: true
+	}, (currentTab) => {
+		asides[index].tabs.forEach((item, i) => {
+			chrome.tabs.create({
+				url: item.url,
+				active: i == 0
 			});
 		});
-	} else {
-		chrome.tabs.query({
-			currentWindow: true,
-			active: true
-		}, (currentTab) => {
-			asides[index].tabs.forEach((item, i) => {
-				chrome.tabs.create({
-					url: item.url,
-					active: i == 0
-				});
-			});
-			if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
-				chrome.tabs.remove(currentTab[0].id);
-			}
-		});
-	}
+		if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
+			chrome.tabs.remove(currentTab[0].id);
+		}
+	});
 	if (!noDismiss && settings.dismiss != "no") {
 		dismissEntry(index);
 	} else {
@@ -188,6 +179,8 @@ function restoreEntry(index, noDismiss) {
 }
 
 function dismissEntry(index) {
+	if (processing) {return;}
+	processing = true;
 	let newAsides = asides.slice();
 	newAsides.splice(index, 1);
 	chrome.storage.local.set({asides: newAsides});
@@ -214,11 +207,12 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 }
 
 function dismissTab(entryIndex, tabIndex) {
+	if (processing) {return;}
+	processing = true;
 	let newAsides = asides.slice();
 	newAsides[entryIndex] = {
 		id: asides[entryIndex].id,
 		time: asides[entryIndex].time,
-		isWindow: asides[entryIndex].isWindow,
 		tabs: asides[entryIndex].tabs.slice()
 	};
 	newAsides[entryIndex].tabs.splice(tabIndex, 1);
@@ -235,7 +229,6 @@ function fillDefaultSettings(obj) {
 	if (!obj.sort) {obj.sort = "desc";}
 	if (!obj.expandDefault) {obj.expandDefault = "no";}
 	if (!obj.dismiss) {obj.dismiss = "yes";}
-	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
 	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
 }

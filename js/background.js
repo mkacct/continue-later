@@ -172,14 +172,14 @@ function restoreEntry(index, noDismiss) {
 		}
 	});
 	if (!noDismiss && settings.dismiss != "no") {
-		dismissEntry(index);
+		dismissEntry(index, true);
 	} else {
 		processing = false;
 	}
 }
 
-function dismissEntry(index) {
-	if (processing) {return;}
+function dismissEntry(index, isInternal) {
+	if (!isInternal && processing) {return;}
 	processing = true;
 	let newAsides = asides.slice();
 	newAsides.splice(index, 1);
@@ -200,14 +200,14 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 		}
 	});
 	if (!noDismiss && settings.dismiss == "yes") {
-		dismissTab(entryIndex, tabIndex);
+		dismissTab(entryIndex, tabIndex, true);
 	} else {
 		processing = false;
 	}
 }
 
-function dismissTab(entryIndex, tabIndex) {
-	if (processing) {return;}
+function dismissTab(entryIndex, tabIndex, isInternal) {
+	if (!isInternal && processing) {return;}
 	processing = true;
 	let newAsides = asides.slice();
 	newAsides[entryIndex] = {

@@ -96,14 +96,12 @@ function setTabs(isWindow, justThisOne, setId) {
 				entry = {
 					id: asides[existingIndex].id,
 					time: asides[existingIndex].time,
-					isWindow: asides[existingIndex].isWindow,
 					tabs: asides[existingIndex].tabs.slice()
 				};
 			} else {
 				entry = {
 					id: uuidv4(),
 					time: (new Date()).getTime(),
-					isWindow: isWindow,
 					tabs: []
 				};
 			}
@@ -156,30 +154,20 @@ function restoreEntry(index, noDismiss) {
 	if (processing) {return;}
 	if (!asides[index]) {return;}
 	processing = true;
-	if (settings.openNewWindow == "yes" || (settings.openNewWindow == "ifWindow" && asides[index].isWindow) || (settings.openNewWindow == "ifMultiple" && asides[index].tabs.length > 1)) {
-		chrome.windows.getCurrent((current) => {
-			chrome.windows.create({
-				focused: true,
-				incognito: current ? current.incognito : false,
-				url: asides[index].tabs.map((item) => {return item.url;})
+	chrome.tabs.query({
+		currentWindow: true,
+		active: true
+	}, (currentTab) => {
+		asides[index].tabs.forEach((item, i) => {
+			chrome.tabs.create({
+				url: item.url,
+				active: i == 0
 			});
 		});
-	} else {
-		chrome.tabs.query({
-			currentWindow: true,
-			active: true
-		}, (currentTab) => {
-			asides[index].tabs.forEach((item, i) => {
-				chrome.tabs.create({
-					url: item.url,
-					active: i == 0
-				});
-			});
-			if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
-				chrome.tabs.remove(currentTab[0].id);
-			}
-		});
-	}
+		if (settings.closeNewTab == "yes" && isNewTab(currentTab[0].url)) {
+			chrome.tabs.remove(currentTab[0].id);
+		}
+	});
 	if (!noDismiss && settings.dismiss != "no") {
 		dismissEntry(index);
 	} else {
@@ -218,7 +206,6 @@ function dismissTab(entryIndex, tabIndex) {
 	newAsides[entryIndex] = {
 		id: asides[entryIndex].id,
 		time: asides[entryIndex].time,
-		isWindow: asides[entryIndex].isWindow,
 		tabs: asides[entryIndex].tabs.slice()
 	};
 	newAsides[entryIndex].tabs.splice(tabIndex, 1);
@@ -235,7 +222,6 @@ function fillDefaultSettings(obj) {
 	if (!obj.sort) {obj.sort = "desc";}
 	if (!obj.expandDefault) {obj.expandDefault = "no";}
 	if (!obj.dismiss) {obj.dismiss = "yes";}
-	if (!obj.openNewWindow) {obj.openNewWindow = "no";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
 	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
 }

@@ -24,11 +24,6 @@ function load() {
 			entryTitle.className = "entryTitle";
 			entryTitle.innerText = item.tabs.length + " page" + ((item.tabs.length == 1) ? "" : "s");
 			top.appendChild(entryTitle);
-			if ((bg.settings.openNewWindow == "ifWindow") && item.isWindow) {
-				let windowIcon = document.createElement("i");
-				windowIcon.innerHTML = "<i class=\"far fa-window-maximize\"></i>";
-				top.appendChild(windowIcon);
-			}
 			let entryTime = document.createElement("span");
 			entryTime.className = "entryTime";
 			entryTime.innerText = durationText((new Date()).getTime() - item.time);

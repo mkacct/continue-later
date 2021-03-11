@@ -164,7 +164,7 @@ function openMenu(self, item, j) {
 				});
 				menu.appendChild(openButton);
 			}
-			if (isPage) {
+			if (isPage && navigator.share) {
 				let shareButton = document.createElement("button");
 				shareButton.innerHTML = "<i class=\"far fa-share-square fa-lg fa-fw\"></i>Share";
 				shareButton.disabled = !navigator.canShare({url: item.tabs[j].url});
@@ -175,7 +175,8 @@ function openMenu(self, item, j) {
 					});
 				});
 				menu.appendChild(shareButton);
-			} else {
+			}
+			if (!isPage) {
 				let addButton = document.createElement("button");
 				bg.getIndicatedTabs({
 					currentWindow: true,

@@ -131,6 +131,8 @@ function setTabs(mode, setId) {
 
 function setLink(url) {
 	if (!isNewTab(url)) {
+		if (processing) {return;}
+		processing = true;
 		let newAsides = asides.concat([{
 			id: uuidv4(),
 			time: (new Date()).getTime(),
@@ -177,6 +179,8 @@ function restoreEntry(index, noDismiss) {
 }
 
 function dismissEntry(index) {
+	if (processing) {return;}
+	processing = true;
 	let newAsides = asides.slice();
 	newAsides.splice(index, 1);
 	chrome.storage.local.set({asides: newAsides});
@@ -203,6 +207,8 @@ function restoreTab(entryIndex, tabIndex, noDismiss) {
 }
 
 function dismissTab(entryIndex, tabIndex) {
+	if (processing) {return;}
+	processing = true;
 	let newAsides = asides.slice();
 	newAsides[entryIndex] = {
 		id: asides[entryIndex].id,

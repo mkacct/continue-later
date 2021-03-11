@@ -164,7 +164,7 @@ function openMenu(self, item, j) {
 				});
 				menu.appendChild(openButton);
 			}
-			if (isPage) {
+			if (isPage && navigator.share) {
 				let shareButton = document.createElement("button");
 				shareButton.innerHTML = "<i class=\"far fa-share-square fa-lg fa-fw\"></i>Share";
 				shareButton.disabled = !navigator.canShare({url: item.tabs[j].url});
@@ -175,7 +175,8 @@ function openMenu(self, item, j) {
 					});
 				});
 				menu.appendChild(shareButton);
-			} else {
+			}
+			if (!isPage) {
 				let addButton = document.createElement("button");
 				bg.getIndicatedTabs({
 					currentWindow: true,
@@ -185,7 +186,7 @@ function openMenu(self, item, j) {
 					addButton.disabled = selected.length == 0;
 				});
 				addButton.addEventListener("click", () => {
-					chrome.runtime.getBackgroundPage((bg) => {bg.setTabs(false, false, item.id);});
+					chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("selection", item.id);});
 				});
 				menu.appendChild(addButton);
 			}
@@ -224,10 +225,10 @@ window.addEventListener("load", () => {
 	});
 	document.querySelector("#topMenuButton").addEventListener("click", () => {openMenu(document.querySelector("#topMenuButton"))});
 	document.querySelector("#addTabButton").addEventListener("click", () => {
-		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs(false);});
+		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("selection");});
 	});
 	document.querySelector("#addWindowButton").addEventListener("click", () => {
-		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs(true);});
+		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("window");});
 	});
 	document.addEventListener("click", (e) => {
 		let clickedEl = e.target;

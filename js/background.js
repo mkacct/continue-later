@@ -176,7 +176,7 @@ function restoreEntry(index, noDismiss) {
 		active: true
 	}, (currentTab) => {
 		let grouper;
-		if (settings.groupRestoredTabs == "yes" && asides[index].tabs.length > 1) {
+		if (chrome.tabs.group && settings.groupRestoredTabs == "yes" && asides[index].tabs.length > 1) {
 			grouper = new TabGrouper(asides[index].tabs.length);
 		}
 		asides[index].tabs.forEach((item, i) => {

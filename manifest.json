@@ -1,6 +1,6 @@
 {
 	"name": "Continue Later",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Add pages to a list to continue browsing later",
 	"icons": {
 		"16": "res/icon_16.png",
@@ -18,10 +18,10 @@
 		"persistent": false
 	},
 	"commands": {
-		"10": {"description": "Add selected tab(s) to list"},
-		"20": {"description": "Add current window to list"},
-		"30": {"description": "Open & dismiss oldest entry"},
-		"40": {"description": "Open & dismiss newest entry"}
+		"10": {"description": "Add selected page(s) to list"},
+		"20": {"description": "Add all pages in window to list"},
+		"30": {"description": "Open & dismiss oldest set"},
+		"40": {"description": "Open & dismiss newest set"}
 	},
 	"permissions": [
 		"storage",

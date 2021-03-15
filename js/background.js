@@ -32,11 +32,14 @@ chrome.storage.onChanged.addListener(load);
 chrome.commands.onCommand.addListener((command) => {
 	if (settings.suppressRepeatCommands == "yes") {
 		if (command == setCommandUsed) {return;}
-		if (command == "10" || command == "20") {setCommandUsed = command;}
+		if (command == "10" || command == "15" || command == "20") {setCommandUsed = command;}
 	}
 	switch (command) {
 		case "10": // set selection
 			setTabs("selection");
+			break;
+		case "15": // set group
+			setTabs("group");
 			break;
 		case "20": // set window
 			setTabs("window");
@@ -78,7 +81,7 @@ chrome.contextMenus.onClicked.addListener((data) => {
 	}
 });
 
-// mode "current", "selection", "window"
+// mode "current", "selection", "group", "window"
 function setTabs(mode, setId) {
 	if (processing) {return;}
 	processing = true;
@@ -88,7 +91,11 @@ function setTabs(mode, setId) {
 	} else if (mode == "selection") {
 		opts.highlighted = true;
 	}
-	getIndicatedTabs(opts, (tabs) => {
+	getIndicatedTabs(opts, (tabs, unfilteredTabs) => {
+		if (mode == "group") {
+			let active = unfilteredTabs.find((item) => {return item.active;});
+			tabs = tabs.filter((item) => {return item.groupId == active.groupId;});
+		}
 		if (tabs.length > 0) {
 			let entry;
 			let existingIndex;
@@ -145,7 +152,7 @@ function setLink(url) {
 
 function getIndicatedTabs(opts, callback) {
 	chrome.tabs.query(opts, (res) => {
-		callback(res.filter((tab) => {return !isNewTab(tab.url);}));
+		callback(res.filter((tab) => {return !isNewTab(tab.url);}), res);
 	});
 }
 
@@ -176,7 +183,7 @@ function restoreEntry(index, noDismiss) {
 		active: true
 	}, (currentTab) => {
 		let grouper;
-		if (chrome.tabs.group && settings.groupRestoredTabs == "yes" && asides[index].tabs.length > 1) {
+		if (settings.groupRestoredTabs == "yes" && asides[index].tabs.length > 1) {
 			grouper = new TabGrouper(asides[index].tabs.length);
 		}
 		asides[index].tabs.forEach((item, i) => {
@@ -251,7 +258,7 @@ function fillDefaultSettings(obj) {
 	if (!obj.dismiss) {obj.dismiss = "yes";}
 	if (!obj.closeNewTab) {obj.closeNewTab = "yes";}
 	if (!obj.suppressRepeatCommands) {obj.suppressRepeatCommands = "yes";}
-	if (!obj.groupRestoredTabs) {obj.groupRestoredTabs = "no";}
+	if (!obj.groupRestoredTabs) {obj.groupRestoredTabs = "yes";}
 }
 
 function isNewTab(s) {

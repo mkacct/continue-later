@@ -8,9 +8,6 @@ function setTab(tabName) {
 };
 
 window.addEventListener("load", () => {
-	if (chrome.tabs.group) {
-		document.querySelector(".ifGroup").style.display = "block";
-	}
 	chrome.runtime.getBackgroundPage((bg) => {
 		let radioGroups = ["sort", "dismiss"];
 		let checkboxes = ["expandDefault", "closeNewTab", "suppressRepeatCommands", "groupRestoredTabs"];

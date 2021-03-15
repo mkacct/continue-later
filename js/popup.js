@@ -96,17 +96,18 @@ function load() {
 
 function updateAddButtons() {
 	chrome.runtime.getBackgroundPage((bg) => {
-		bg.getIndicatedTabs({
-			currentWindow: true,
-			highlighted: true
-		}, (selected) => {
-			chrome.runtime.getBackgroundPage((bg) => {
-				bg.getIndicatedTabs({currentWindow: true}, (inWindow) => {
-					document.querySelector("#addTabButton").disabled = selected.length == 0;
-					document.querySelector("#addWindowButton").disabled = inWindow.length == 0;
-					document.querySelector("#addTabText").innerText = (selected.length > 1) ? "Add selected pages to list" : "Add page to list";
-				});
-			});
+		bg.getIndicatedTabs({currentWindow: true}, (inWindow, inWindowUnfiltered) => {
+			let selected = inWindow.filter((item) => {return item.highlighted;});
+			document.querySelector("#addTabButton").disabled = selected.length == 0;
+			document.querySelector("#addWindowButton").disabled = inWindow.length == 0;
+			document.querySelector("#addTabText").innerText = (selected.length > 1) ? "Add selected pages to list" : "Add page to list";
+			document.querySelector("#addGroupButton").disabled = true;
+			let active = inWindowUnfiltered.find((item) => {return item.active;});
+			if (active.groupId >= 0) {
+				document.querySelector("#addGroupButton").disabled = inWindow.filter((item) => {
+					return item.groupId == active.groupId;
+				}).length == 0;
+			}
 		});
 	});
 }
@@ -115,7 +116,7 @@ function menuButton(item, j) {
 	let it = document.createElement("button");
 	it.innerHTML = "<i class=\"fas fa-ellipsis-h\"></i>";
 	it.title = "Menu";
-	it.addEventListener("click", () => {openMenu(it, item, j);})
+	it.addEventListener("click", () => {openMenu(it, item, j);});
 	return it;
 }
 
@@ -226,6 +227,9 @@ window.addEventListener("load", () => {
 	document.querySelector("#topMenuButton").addEventListener("click", () => {openMenu(document.querySelector("#topMenuButton"))});
 	document.querySelector("#addTabButton").addEventListener("click", () => {
 		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("selection");});
+	});
+	document.querySelector("#addGroupButton").addEventListener("click", () => {
+		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("group");});
 	});
 	document.querySelector("#addWindowButton").addEventListener("click", () => {
 		chrome.runtime.getBackgroundPage((bg) => {bg.setTabs("window");});
